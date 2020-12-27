@@ -1,0 +1,402 @@
+% Copyright 2019-2021 by Sam Maddens
+
+\documentclass[12pt]{article}
+
+\usepackage[a4paper, margin = 2.5cm]{geometry}
+\newcommand{\TITLE}{Vect package}
+\newcommand{\SUBTITLE}{Vector notation with TikZ}
+\newcommand{\AUTHOR}{Sam Maddens}
+\newcommand{\VERSION}{2020/12/27 version 0.1.0}
+
+\usepackage{fnpct}
+\setfnpct{punct-after}
+
+\usepackage[bottom]{footmisc}
+
+\makeatletter
+\renewcommand{\@makefnmark}{\hbox{\textsuperscript{{\@thefnmark}}}}
+\makeatother
+
+\usepackage[bookmarks = true, bookmarksnumbered = true, pdfpagemode = UseNone, hide links]{hyperref}
+\hypersetup{pdftitle = {\TITLE{} - \VERSION}, pdfauthor = {\AUTHOR}}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+%\usepackage{noto-mono}
+%\usepackage[sfdefault]{notomath}
+
+\usepackage{anyfontsize}% needed to prevent font warnings caused by esvect
+
+\usepackage{etoolbox}
+
+\usepackage{enumitem}
+
+\usepackage[nobottomtitles]{titlesec}
+
+\usepackage{tikz}
+
+\pagecolor{black!10}
+
+\SetEnumitemKey{baseItem}{leftmargin = *, topsep = 0pt, partopsep = 0pt, itemsep = 0pt, parsep = 0pt, beginpenalty = 10000, before = {\interlinepenalty=10000}}
+
+\newsavebox{\boxItem}
+
+\newcommand{\tikzItem}[2][0.7ex]{%
+\sbox{\boxItem}{#2}%
+\tikz[baseline]{\node[inner sep = 0pt, outer sep = 0pt, anchor = center] at (0,#1) {\usebox{\boxItem}};}%
+}
+
+% Bullet
+\newlist{bulItem}{itemize}{5}
+\setlist[bulItem]{baseItem, label = {\tikzItem{\tikz{\fill (0,0) circle (0.175em);}}}}
+
+\usepackage{multicol}
+
+\raggedcolumns
+\setlength{\multicolsep}{0pt}
+\setlength{\columnsep}{1em}
+
+\usepackage{array}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+
+\newenvironment{comparision}{%
+\setlength{\extrarowheight}{\medskipamount}%
+\begin{tabular}{@{}l @{\hspace{1em}} @{}l @{\hspace{1em}} @{}l}%
+}{%
+\end{tabular}%
+}
+
+\usepackage{xparse}
+
+\usepackage{listings}
+
+\lstset{
+breaklines = true,
+basicstyle = \ttfamily\color{purple},
+tabsize = 2
+}
+
+\ExplSyntaxOn
+\NewDocumentCommand{\showcaseCmpA}{v}%
+{\tt vect & \lstinline{#1} & \tl_rescan:nn{}{#1}}
+\ExplSyntaxOff
+
+\newcommand{\lighter}{\color{black!50}}
+\ExplSyntaxOn
+\NewDocumentCommand{\showcaseCmpB}{v}%
+{\lighter\tt esvect & \lighter\tt#1 & \lighter\tl_rescan:nn{}{#1}}
+\ExplSyntaxOff
+
+\ExplSyntaxOn
+\NewDocumentCommand{\showcase}{v}%
+{\lstinline{#1} \hspace*{1em} \tl_rescan:nn{}{#1}}
+\ExplSyntaxOff
+
+\usepackage[]{vect}
+
+\usepackage{esvect}
+
+% Check versions of documentation and package
+\makeatletter
+\edef\versionVect{\csname ver@vect.sty\endcsname\space version\space\verInd@vect}
+\makeatother
+
+\ifdefstrequal{\VERSION}{\versionVect}{
+	% Do nothing
+}{
+	\PackageWarningNoLine{}{Change \detokenize{\VERSION} to "\versionVect"}
+}
+
+% Title
+\title{\TITLE\\\smallskip\large\SUBTITLE}
+\author{\AUTHOR\footnote{Email: \tt sam{\color{blue}\textbf{dot}}m{\color{blue}\textbf{dot}}28{\color{blue}\textbf{at}}outlook{\color{blue}\textbf{dot}}com}
+\\{\normalsize \url{https://github.com/sammaddens/vect}}}
+\date{\normalsize\VERSION}
+
+% Indent
+\setlength{\parindent}{0pt}
+
+% History log
+\newenvironment{version}[2]{%
+\textbf{Version #1} (#2)
+\begin{bulItem}%
+}{%
+\end{bulItem}\bigskip%
+}
+
+\newcommand{\optPackage}[1]{{\color{blue}\tt{#1}}}
+\ExplSyntaxOn
+\NewDocumentCommand{\cmdPackage}{v}%
+{{\color{blue}\tt#1}}
+\ExplSyntaxOff
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent The \verb|vect| package provides an improved vector notation by involving \textit{TikZ}.
+\end{abstract}
+
+{\color{red}\textbf{Warning!}} The package is in a testing phase, so large changes are possible.
+
+\tableofcontents
+
+\newpage
+
+\section{Introduction}
+
+The \verb|vec| command gives a vector with the arrow notation, but it isn't designed for multiple characters. This package provides an improved vector notation by involving \textit{TikZ}. Additional, the kind of notation (arrow or bold) can easily be changed.
+
+\section{Usage}
+
+Load the package with:
+
+\cmdPackage{\usepackage[<options>]{vect}}
+
+\subsection{Package options}
+
+The package uses by default the improved vector notation when the \verb|vec| command is called. The first two package options can change this behaviour.\bigskip
+
+\begin{bulItem}
+\item \optPackage{vecb}: Bold and upright vector notation without arrow.\bigskip
+
+\item \optPackage{oldvec}: Preserve the original \verb|vec| command.\bigskip
+
+\item \optPackage{frame}: Put a frame around the node and arrow when the improved vector notation is used (see section \ref{sec:frame}).
+\end{bulItem}\bigskip
+
+Multiple options can be called by separating them with a comma:
+
+\cmdPackage{\usepackage[vecb, frame]{vect}}
+
+\subsection{Basic usage}
+
+Some basic commands are provided for a straightforward use.\bigskip
+
+\begin{bulItem}
+\item \cmdPackage{\vec{<arg>}}: Improved vector notation by default, depends on chosen package option.\bigskip
+
+\item \cmdPackage{\vect{<arg>}}: Improved vector notation.\medskip
+
+{\centering\showcase{$\vect{AB}$}\par}\bigskip
+
+\item \cmdPackage{\vecb{<arg>}}: Bold and upright vector notation without arrow.\medskip
+
+{\centering\showcase{$\vecb{AB}$}\par}\bigskip
+
+\item \cmdPackage{\oldvec{<arg>}}: Original vector notation.\medskip
+
+{\centering\showcase{$\oldvec{AB}$}\par}
+\end{bulItem}\bigskip
+
+Some examples illustrate the improved vector notation.\medskip
+
+\begin{multicols}{2}
+\showcase{$\vec{x}$}\medskip
+
+\showcase{$\vec{A_1B}$}\medskip
+
+\showcase{$\vec{AB_1}$}\medskip
+
+\showcase{$\vec{A_1B_1}$}
+\end{multicols}
+
+\subsection{Index}
+
+For properly indexing a vector, each basic command has an optional argument \textbf{after} the main argument (made possible by the \verb|xparse| package).\bigskip
+
+\begin{bulItem}
+\item \cmdPackage{\vec{<arg>}[<arg>]}: \showcase{$\vec{r}[1x]$}\bigskip
+
+\item \cmdPackage{\vect{<arg>}[<arg>]}: \showcase{$\vect{r}[1x]$}\bigskip
+
+\item \cmdPackage{\vecb{<arg>}[<arg>]}: \showcase{$\vecb{r}[1x]$}\bigskip
+
+\item \cmdPackage{\oldvec{<arg>}[<arg>]}: \showcase{$\oldvec{r}[1x]$}
+\end{bulItem}
+
+\subsection{Advanced usage}
+
+A more advanced usage can be achieved with the comma separated options (key values) in the optional argument \textbf{before} the main argument:\bigskip
+
+{\centering\cmdPackage{\vec[<options>]{<arg>}} or \cmdPackage{\vect[<options>]{<arg>}}\par}\bigskip
+
+The optional argument is also compatible with the other basic commands, but without effects.
+
+\subsubsection{Frame}\label{sec:frame}
+
+The option \verb|frame| puts a frame around the node and arrow. This is helpful for fine tuning spacing. \verb|frame| can also be used as a package option.\medskip
+
+{
+\centering\showcase{$\vec[frame]{x}[1]$}\bigskip
+
+\scalebox{10}{$\vec[frame]{x}[1]$}\par
+}
+
+\subsubsection{Spacing}
+
+{\color{red}\textbf{Warning!}} These options can be removed in the future.\bigskip
+
+The following options add space around the arrow:\bigskip
+
+\begin{bulItem}
+\item \cmdPackage{left = <dim>}: \showcase{$x \vec[left = 5pt, frame]{x}[1] x$}\bigskip
+
+\item \cmdPackage{right = <dim>}: \showcase{$x \vec[right = 5pt, frame]{x}[1] x$}
+\end{bulItem}
+
+\section{Comparison with other packages}
+
+\subsection{Esvect}
+
+The \verb|esvect| package\footnote{\url{https://www.ctan.org/pkg/esvect}, maintained by Eddie Saudrais} is an alternative for an improved vector notation. It's based on playing with the combination of connected lines and the arrow head. The result of the \verb|vect| package is similar, but the largest differences are:\bigskip
+
+\begin{bulItem}
+\item The rendering is smooth for all zooming factors.\nopagebreak
+
+\verb|esvect| gives an overlap in the arrow which is visible for some zooming factors. This is caused by the used method.\bigskip
+
+\item The index is an optional argument after the base command.\nopagebreak
+
+\verb|estvect| needs the starred version to add an index.\bigskip
+
+\item The last index is placed correctly.\nopagebreak
+
+\verb|esvect| introduces an extra space before the last index.\bigskip
+
+\item Currently, only one type of arrow head is supported.\nopagebreak
+
+\verb|esvect| provides 8 options.
+\end{bulItem}\bigskip
+
+Some examples help to compare the two packages.
+
+\bigskip\textbf{Arrow}\bigskip
+
+\begin{multicols}{2}
+\begin{comparision}
+\showcaseCmpA{$\vec{x}$} \\
+\showcaseCmpB{$\vv{x}$} \\
+\end{comparision}
+
+\begin{comparision}
+\showcaseCmpA{$\vec{AB}$} \\
+\showcaseCmpB{$\vv{AB}$}
+\end{comparision}
+
+\begin{comparision}
+\showcaseCmpA{$\vec{\imath}$} \\
+\showcaseCmpB{$\vv{\imath}$}
+\end{comparision}
+\end{multicols}
+
+\bigskip\textbf{Index}\bigskip
+
+\begin{multicols}{2}
+\begin{comparision}
+\showcaseCmpA{$\vec{a_{ix}}$} \\
+\showcaseCmpB{$\vv{a_{ix}}$}
+\end{comparision}
+
+\begin{comparision}
+\showcaseCmpA{$\vec{a}[ix]$} \\
+\showcaseCmpB{$\vv*{a}{ix}$}
+\end{comparision}
+\end{multicols}
+
+\bigskip\textbf{Size}\bigskip
+
+\begin{comparision}
+\showcaseCmpA{$\vec{E}_{\vec{E}_{\vec{E}}}$} \\
+\showcaseCmpB{$\vv{E}_{\vv{E}_{\vv{E}}}$}
+\end{comparision}\bigskip
+
+\begin{comparision}
+\showcaseCmpA{$\vec{E}^{\vec{E}^{\vec{E}}}$} \\
+\showcaseCmpB{$\vv{E}^{\vv{E}^{\vv{E}}}$}
+\end{comparision}\bigskip
+
+\begin{comparision}
+\showcaseCmpA{\Huge$\vec{x}$} \\
+\showcaseCmpB{\Huge$\vv{x}$}
+\end{comparision}
+
+\subsection{Letterswitharrows}
+
+Another package for vectors is \verb|letterswitharrows|\footnote{\url{https://www.ctan.org/pkg/letterswitharrows}, maintained by Max Teegen}, but its focus lies on single characters.
+
+\section{Hacking the code}
+
+Use the following code in the preamble if you want to change the arrow.\bigskip
+
+\begin{lstlisting}
+\makeatletter
+\renewcommand{\arrowpath@vect}{%
+	\fill
+	% Top
+	($(node@vect.north west) + (0pt - 0.5*\extraWidthMain@vect,\vOffset@vect + 1*\linewidth@vect)$)
+	-- ($(node@vect.north east) + (-4.5*\linewidth@vect + 0.5\extraWidthMain@vect,\vOffset@vect + 0.5*\linewidth@vect)$)
+	-- ($(node@vect.north east) + (-4.5*\linewidth@vect + 0.5\extraWidthMain@vect,\vOffset@vect + 0.5*\linewidth@vect) + (-1.25*\linewidth@vect,2.5*\linewidth@vect)$)
+	% Middle
+	-- ($(node@vect.north east) + (0pt + 0.5\extraWidthMain@vect,\vOffset@vect)$)
+	% Bottom
+	-- ($(node@vect.north east) + (-4.5*\linewidth@vect + 0.5\extraWidthMain@vect,\vOffset@vect - 0.5*\linewidth@vect) + (-1.25*\linewidth@vect,-2.5*\linewidth@vect)$)
+	-- ($(node@vect.north east) + (-4.5*\linewidth@vect + 0.5\extraWidthMain@vect,\vOffset@vect - 0.5*\linewidth@vect)$)
+	-- ($(node@vect.north west) + (0pt - 0.5\extraWidthMain@vect,\vOffset@vect - 1*\linewidth@vect)$)
+	% Close
+	-- cycle;%
+}
+\makeatother
+\end{lstlisting}
+
+\makeatletter
+\renewcommand{\arrowpath@vect}{%
+	\fill
+	% Top
+	($(node@vect.north west) + (0pt - 0.5*\extraWidthMain@vect,\vOffset@vect + 1*\linewidth@vect)$)
+	-- ($(node@vect.north east) + (-4.5*\linewidth@vect + 0.5\extraWidthMain@vect,\vOffset@vect + 0.5*\linewidth@vect)$)
+	-- ($(node@vect.north east) + (-4.5*\linewidth@vect + 0.5\extraWidthMain@vect,\vOffset@vect + 0.5*\linewidth@vect) + (-1.25*\linewidth@vect,2.5*\linewidth@vect)$)
+	% Middle
+	-- ($(node@vect.north east) + (0pt + 0.5\extraWidthMain@vect,\vOffset@vect)$)
+	% Bottom
+	-- ($(node@vect.north east) + (-4.5*\linewidth@vect + 0.5\extraWidthMain@vect,\vOffset@vect - 0.5*\linewidth@vect) + (-1.25*\linewidth@vect,-2.5*\linewidth@vect)$)
+	-- ($(node@vect.north east) + (-4.5*\linewidth@vect + 0.5\extraWidthMain@vect,\vOffset@vect - 0.5*\linewidth@vect)$)
+	-- ($(node@vect.north west) + (0pt - 0.5\extraWidthMain@vect,\vOffset@vect - 1*\linewidth@vect)$)
+	% Close
+	-- cycle;%
+}
+\makeatother
+
+{\centering\scalebox{10}{$\vec[frame]{x}[1]$}\par}
+
+\section{Improvement}
+
+Bugs or suggestions for improvement can be reported at the related GitHub page or by email:
+\begin{bulItem}
+\item \url{https://github.com/sammaddens/vect}
+\item \tt sam{\color{blue}\textbf{dot}}m{\color{blue}\textbf{dot}}28{\color{blue}\textbf{at}}outlook{\color{blue}\textbf{dot}}com
+\end{bulItem}
+
+\newpage
+
+\section{History log}
+
+\begin{multicols}{2}
+
+\begin{version}{0.1.0}{2020/12/27}
+\item Search for last index removed.
+\item Code extended.
+\end{version}
+
+\begin{version}{0.0.1}{2020/03/29}
+\item Code clarified and extended.
+\end{version}
+
+\begin{version}{0.0.0}{2019/07/25}
+\item Initial version.
+\end{version}
+\end{multicols}
+
+\end{document}
