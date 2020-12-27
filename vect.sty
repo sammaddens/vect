@@ -1,0 +1,234 @@
+% Copyright 2019-2021 by Sam Maddens
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{vect}[2020/12/27]
+\def\verInd@vect{0.1.0}
+
+\usepackage{xkeyval}
+\usepackage{etoolbox}
+\usepackage{xparse}
+\usepackage{letltxmacro}
+
+\usepackage{calc}
+
+\usepackage{tikz}
+\usetikzlibrary{
+calc,
+arrows.meta
+}
+
+\makeatletter
+\newcommand{\optionVecb@vect}{0}
+\DeclareOptionX{vecb}{\renewcommand{\optionVecb@vect}{1}}
+
+\newcommand{\optionOldvec@vect}{0}
+\DeclareOptionX{oldvec}{\renewcommand{\optionOldvec@vect}{1}}
+
+\newcommand{\optionFrame@vect}{0}
+\DeclareOptionX{frame}{\renewcommand{\optionFrame@vect}{1}}
+
+% Experimental
+\newcommand{\optionTikzArrow@vect}{0}
+\DeclareOptionX{tikzarrow}{\renewcommand{\optionTikzArrow@vect}{1}} 
+
+\ProcessOptionsX\relax
+
+% Main part and index
+\newcommand{\main@vect}{}
+\newcommand{\index@vect}{}
+
+% Pgfkeys
+\pgfkeys{/keys@vect/.cd,
+frame/.code = {
+	\renewcommand{\optionFrame@vect}{1}
+},
+left/.code = {
+	\renewcommand{\spaceLeft@vect}{#1}
+},
+right/.code = {
+	\renewcommand{\spaceRight@vect}{#1}
+},
+}
+
+% Optional
+\tikzset{arrowVect/.tip = {{Triangle[angle = 45:2pt 1, line width = 0pt]}}}
+
+\newlength{\minWidth@vect}
+\newlength{\linewidth@vect}
+\newlength{\hOffset@vect}
+\newlength{\vOffset@vect}
+
+\newcommand{\minWidth@default@vect}{0.65em}
+\newcommand{\linewidth@default@vect}{0.1ex}
+\newcommand{\hOffset@default@vect}{0em}
+\newcommand{\vOffset@default@vect}{0.5ex}
+% Experimental
+\newcommand{\spaceLeft@vect}{0pt}
+\newcommand{\spaceRight@vect}{0pt}
+\newcommand{\spaceAbove@vect}{0pt}
+\newcommand{\spaceBelow@vect}{0pt}
+
+\newlength{\widthMain@vect}
+\newlength{\widthTotal@vect}
+\newlength{\extraWidthMain@vect}
+\newlength{\widthIndex@vect}
+
+% Get math fontsize (switches based on https://tex.stackexchange.com/questions/43978/proper-use-of-mathchoice)
+% FontA doesn't need rule command to scale, but destroys the spacing after vector
+\def\fontsizeA@D@vect{\def\f@size{\tf@size}}
+\def\fontsizeA@T@vect{\def\f@size{\tf@size}}
+\def\fontsizeA@S@vect{\def\f@size{\sf@size}}
+\def\fontsizeA@s@vect{\def\f@size{\ssf@size}}
+
+\def\fontsizeB@D@vect{\fontsize{\tf@size}{\tf@size}\selectfont}
+\def\fontsizeB@T@vect{\fontsize{\tf@size}{\tf@size}\selectfont}
+\def\fontsizeB@S@vect{\fontsize{\sf@size}{\sf@size}\selectfont}
+\def\fontsizeB@s@vect{\fontsize{\ssf@size}{\ssf@size}\selectfont}
+
+\newcommand\getFontsize@vect[1]{\mathchoice%
+{\edef\switch@vect{D}#1}%
+{\edef\switch@vect{T}#1}%
+{\edef\switch@vect{S}#1}%
+{\edef\switch@vect{s}#1}%
+}
+
+\def\savedFontsizeA@vect{\csname fontsizeA@\switch@vect @vect\endcsname}
+\def\savedFontsizeB@vect{\csname fontsizeB@\switch@vect @vect\endcsname}
+
+% Arrow path
+\newcommand{\arrowpath@vect}{%
+\ifnum\optionTikzArrow@vect = 0
+	\fill
+	% Top
+	($(node@vect.north west) + (0pt - 0.5*\extraWidthMain@vect,\vOffset@vect + 0.5*\linewidth@vect)$)
+	-- ($(node@vect.north east) + (-4.5*\linewidth@vect + 0.5\extraWidthMain@vect,\vOffset@vect + 0.5*\linewidth@vect)$)
+	-- ($(node@vect.north east) + (-4.5*\linewidth@vect + 0.5\extraWidthMain@vect,\vOffset@vect + 0.5*\linewidth@vect) + (-1.25*\linewidth@vect,2.5*\linewidth@vect)$)
+	% Middle
+	-- ($(node@vect.north east) + (0pt + 0.5\extraWidthMain@vect,\vOffset@vect)$)
+	% Bottom
+	-- ($(node@vect.north east) + (-4.5*\linewidth@vect + 0.5\extraWidthMain@vect,\vOffset@vect - 0.5*\linewidth@vect) + (-1.25*\linewidth@vect,-2.5*\linewidth@vect)$)
+	-- ($(node@vect.north east) + (-4.5*\linewidth@vect + 0.5\extraWidthMain@vect,\vOffset@vect - 0.5*\linewidth@vect)$)
+	-- ($(node@vect.north west) + (0pt - 0.5\extraWidthMain@vect,\vOffset@vect - 0.5*\linewidth@vect)$)
+	% Close
+	-- cycle;%
+\else
+% tikz arrow needs a left and right offset of 0.5\linewidth@vect in vect command
+	\draw[line width = \linewidth@vect, -arrowVect] ($(node@vect.north west) + (-0.5\extraWidthMain@vect,\vOffset@vect)$) -- ($(node@vect.north east) + (0.5\extraWidthMain@vect,\vOffset@vect)$);
+\fi
+}
+
+% Box needed to make command robust when nesting commands
+\newsavebox{\box@vect}
+
+% Improved vector notation
+\NewDocumentCommand{\vect}{O{} m o}{%
+\pgfkeys{/keys@vect/.cd, #1}%
+\getFontsize@vect{%
+	\savedFontsizeA@vect%
+	\savebox{\box@vect}{$#2$}%
+	\renewcommand{\main@vect}{\usebox{\box@vect}}%
+	\IfNoValueTF{#3}{
+		\renewcommand{\index@vect}{}%
+	}{%
+		\renewcommand{\index@vect}{#3}%
+	}%
+	%
+	\settowidth{\widthMain@vect}{\main@vect}%
+	\ifdefempty{\index@vect}{%
+		\settowidth{\widthTotal@vect}{\main@vect}%
+	}{%
+		\settowidth{\widthTotal@vect}{$\main@vect_{\index@vect}$}%
+	}%
+	%
+	\settowidth{\minWidth@vect}{\savedFontsizeB@vect\rule{\minWidth@default@vect}{0pt}}%
+	\settowidth{\linewidth@vect}{\savedFontsizeB@vect\rule{\linewidth@default@vect}{0pt}}%
+	\settowidth{\hOffset@vect}{\savedFontsizeB@vect\rule{\hOffset@default@vect}{0pt}}%
+	\settowidth{\vOffset@vect}{\savedFontsizeB@vect\rule{\vOffset@default@vect}{0pt}}%
+	%
+	\setlength{\extraWidthMain@vect}{\maxof{\minWidth@vect - \widthMain@vect}{0em}}%
+	%
+	\tikz[baseline]{
+		% Draw arrow and get its bounding box
+		\begin{scope}
+			\node[draw = none, inner sep = 0, outer sep= 0, line width = 0pt, anchor = base, overlay](node@vect){\phantom{\main@vect}};
+			\arrowpath@vect%
+			\ifnum\optionTikzArrow@vect = 1
+				\renewcommand{\spaceLeft@vect}{-0.5\linewidth@vect}
+				\renewcommand{\spaceRight@vect}{-0.5\linewidth@vect}
+			\fi
+			\coordinate (SW@vect) at ($(current bounding box.south west) - (\spaceLeft@vect,\spaceBelow@vect)$);
+			\coordinate (NE@vect) at ($(current bounding box.north east) + (\spaceRight@vect,\spaceAbove@vect)$);
+			% Frame of arrow and main part separately
+			\ifnum\optionFrame@vect = 1
+				\node[draw = green, inner sep = 0, outer sep= 0, line width = 0.2pt, anchor = base, overlay, opacity = 0.5](node@vect){\phantom{\main@vect}};
+				\draw[green, line width = 0.2pt, overlay, opacity = 0.5] (SW@vect.south west) rectangle (NE@vect.north east);
+			\fi
+			\pgfresetboundingbox
+			\useasboundingbox (SW@vect) rectangle (NE@vect);
+		\end{scope}
+		% Get bounding box of main part with arrow
+		\node[inner sep = 0, outer sep = 0, anchor = base, draw = none](node@vect){\phantom{\main@vect}};
+%		\node[inner sep = 0, outer sep = 0, anchor = base, red](node@vect){\main@vect};% Test if node is at correct position
+		% Frame of arrow and main part together
+		\ifnum\optionFrame@vect = 1
+			\draw[blue, line width = 0.1pt, overlay, opacity = 0.5] (current bounding box.south west) rectangle (current bounding box.north east);
+		\fi
+		\coordinate (A@vect) at (node@vect.south east);
+		\coordinate (B@vect) at (current bounding box.south east);
+		\pgfpointdiff{\pgfpointanchor{A@vect}{center}}{\pgfpointanchor{B@vect}{center}}%
+		\pgfgetlastxy{\xDim@vect}{\yDim@vect}
+		% Horizontal space after main part
+		\xdef\spaceAfter@vect{\xDim@vect}
+	}%
+	% Place main part and index at correct position
+	\hspace*{-\spaceAfter@vect}%
+	\hspace*{-\widthMain@vect}%
+	\ifdefempty{\index@vect}{%
+		\main@vect%
+		\hspace*{\spaceAfter@vect}%
+	}{%
+		\main@vect_{\index@vect}%
+		% Correct spacing if arrow comes further than index
+		\setlength{\widthIndex@vect}{\widthTotal@vect-\widthMain@vect}
+		\ifdim\widthIndex@vect < \spaceAfter@vect
+			\hspace*{-\widthIndex@vect}%
+			\hspace*{\spaceAfter@vect}%
+		\fi%
+	}%
+}%
+}
+
+% Original vector notation
+%\let\oldvec\vec % Doesn't work due to complex arguments
+\LetLtxMacro{\Oldvec}{\vec}
+\NewDocumentCommand{\oldvec}{O{} m o}{
+\IfNoValueTF{#3}{%
+	\Oldvec{#2}
+}{%
+	\Oldvec{#2}_{#3}
+}%
+}
+
+% Bold and upright vector notation
+\NewDocumentCommand{\vecb}{O{} m o}{
+\IfNoValueTF{#3}{%
+	\mathbf{#2}
+}{%
+	\mathbf{#2_{#3}}
+}%
+}
+
+% Overwrite original vec command
+\ifnum\optionOldvec@vect = 1
+	% Overwrite original vec command by oldvec
+	\RenewDocumentCommand{\vec}{O{} m o}{\oldvec[#1]{#2}[#3]}
+\else
+	% Overwrite original vec command by vecb
+	\ifnum\optionVecb@vect = 1
+		\RenewDocumentCommand{\vec}{O{} m o}{\vecb[#1]{#2}[#3]}
+	\else
+		% Overwrite original vec command by vect (default)
+		\RenewDocumentCommand{\vec}{O{} m o}{\vect[#1]{#2}[#3]}
+	\fi
+\fi
+\makeatother
