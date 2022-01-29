@@ -12,7 +12,7 @@ More detailed information is available in the package documentation.
 
 You can install the package in **MiKTeX** as follows.
 
-1. Open the main root directory (where all distributed packages are installed). You  find this directory also in the MiKTeX Console: Settings → Directories.
+1. Open the main root directory (where all distributed packages are installed). You find this directory also in the MiKTeX Console: Settings → Directories.
 
 2. **Optional** When you prefer to store new undistributed packages in another folder (e.g. `MyLibrary`), you need to add it as a new root directory in the MiKTeX Console: Settings → Add (+). Create two directories in that folder: `tex/latex` and `doc/latex`. Finally, open that root directory instead of the main root.
 
@@ -28,7 +28,7 @@ You can install the package in **MiKTeX** as follows.
 
 ## Copyright and license
 
-Copyright 2019-2021 by Sam Maddens
+Copyright 2019-2022 by Sam Maddens
 
 This work may be distributed and/or modified under the conditions of the LaTeX Project Public License, either version 1.3 of this license or (at your option) any later version.
 
